@@ -1,8 +1,11 @@
 // simulates any number of concurrent users of our heroku site
 
-// adjust me!
-var NUM_USERS = 10;
-var TEST_DURATION = 30 * 1000;
+var NUM_USERS = parseInt(process.argv[2]);
+var TEST_DURATION = 1000 * parseInt(process.argv[3]);
+if (! (NUM_USERS > 0) || !(TEST_DURATION > 0)) {
+  console.log("invalid arguments", process.argv);
+  process.exit();
+}
 
 // pull in libraries
 var http = require("http");
