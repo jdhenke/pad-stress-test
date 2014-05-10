@@ -153,6 +153,9 @@ function Client(results) {
               console.log("received commit", commit);
               throw "boo wendy";
             } else {
+              if (!(commit.id in results)) {
+                return;
+              }
               results[commit.id].push(+ new Date());
               nextCommit += 1;
               listen();
