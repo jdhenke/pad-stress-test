@@ -176,15 +176,15 @@ function Client(results, index) {
               console.log("received commit", commit);
               throw "boo wendy";
             } else {
-              if (!(commit.id in results)) {
-                return;
-              }
-              results[commit.id].receiveTimes.push(+ new Date());
               nextCommit += 1;
               listen();
               if (!paused && commit.clientID === clientID) {
                 sendCommit();
               }
+              if (!(commit.id in results)) {
+                return;
+              }
+              results[commit.id].receiveTimes.push(+ new Date());
             }
           })
         }
