@@ -46,17 +46,17 @@ function main() {
       });
     }
     var meanLatency = parseInt(totalLatency / numReceivedCommits);
-    console.log("Sent commits:", numSentCommits);
-    console.log("Received commits:", numReceivedCommits);
-    console.log("Mean Latency:", meanLatency, "(ms)");
+    console.log("sent commits:", numSentCommits);
+    console.log("received commits:", numReceivedCommits);
+    console.log("mean latency:", meanLatency, "(ms)");
   }
 
-  console.log("Start Time:", new  Date())
+  console.log("start time:", new  Date())
   startClients();
   setTimeout(function() {
     stopClients();
     printResults();
-    console.log("End Time:", new  Date())
+    console.log("end time:", new  Date())
     process.exit();
   }, TEST_DURATION);
 }
