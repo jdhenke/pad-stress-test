@@ -6,6 +6,11 @@ if (! (NUM_USERS > 0) || !(TEST_DURATION > 0)) {
   console.log("invalid arguments", process.argv);
   process.exit();
 }
+var docID = process.argv[4];
+if (typeof docID !== "string") {
+  console.log("invalid arguments", process.argv);
+  process.exit();
+}
 
 // pull in libraries
 var http = require("http");
@@ -17,7 +22,7 @@ function main() {
   var clients = [];
   var results = {};
   for (var i = 0; i < NUM_USERS; i += 1) {
-    clients.push(new Client(results));
+    clients.push(new Client(results, i));
   }
 
   function startClients() {
@@ -33,22 +38,37 @@ function main() {
   }
 
   function printResults() {
+    var now = (+ new Date());
     var totalLatency = 0;
     var numReceivedCommits = 0;
     var numSentCommits = 0;
+    var totalOutstandingLatency = 0;
+    var numOutstandingCommits = 0;
+    var maxOutstandingLatency = 0;
     for (var id in results) {
-      var sendTime = parseInt(id);
+      var sendTime = results[id].sendTime;
       numSentCommits += 1;
-      results[id].forEach(function(receiveTime) {
+      results[id].receiveTimes.forEach(function(receiveTime) {
         var latency = receiveTime - sendTime;
         totalLatency += latency;
         numReceivedCommits += 1;
       });
+      for (var i = 0; i < NUM_USERS - results[id].receiveTimes.length; i += 1) {
+        numOutstandingCommits += 1;
+        totalOutstandingLatency += now - sendTime;
+        maxOutstandingLatency = Math.max(maxOutstandingLatency, now - sendTime);
+      }
     }
     var meanLatency = parseInt(totalLatency / numReceivedCommits);
+    var meanOutstandingLatency =
+      parseInt(totalOutstandingLatency / numOutstandingCommits);
     console.log("sent commits:", numSentCommits);
     console.log("received commits:", numReceivedCommits);
     console.log("mean latency:", meanLatency, "(ms)");
+    console.log("outstanding commits:", numOutstandingCommits);
+    console.log("mean outstanding latency:", meanOutstandingLatency);
+    console.log("max outstanding latency:", maxOutstandingLatency);
+    console.log();
   }
 
   console.log("start time:", new  Date())
@@ -68,12 +88,11 @@ var port = 80;
 // class which simulates HTTP requests a real client would make. expects results
 // to be a shared dictionary used by all clients to update the latency of
 // receiving a particular commit.
-function Client(results) {
+function Client(results, index) {
 
   var paused = true;
   var nextCommit = 1;
   var clientID = parseInt(Math.random() * (+ new Date()));
-  var docID = "testing @ " + (+ new Date());
   listen();
 
   this.start = function() {
@@ -86,7 +105,7 @@ function Client(results) {
   };
 
   function sendCommit() {
-    var id = (+ new Date());
+    var id = parseInt(Math.random() * (+ new Date()));
     var commit = {
       clientID: clientID,
       parent: nextCommit - 1,
@@ -94,7 +113,11 @@ function Client(results) {
       id: id,
       docID: docID,
     };
-    results[id] = [];
+    results[id] = {
+      "sendTime": (+ new Date()),
+      "receiveTimes": [],
+      "commit": commit,
+    };
     function doPut() {
       var options = {
         hostname: hostname,
@@ -156,10 +179,7 @@ function Client(results) {
               console.log("received commit", commit);
               throw "boo wendy";
             } else {
-              if (!(commit.id in results)) {
-                return;
-              }
-              results[commit.id].push(+ new Date());
+              results[commit.id].receiveTimes.push(+ new Date());
               nextCommit += 1;
               listen();
               if (!paused && commit.clientID === clientID) {
