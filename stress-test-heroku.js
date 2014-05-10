@@ -68,15 +68,12 @@ function main() {
     console.log("outstanding commits:", numOutstandingCommits);
     console.log("mean outstanding latency:", meanOutstandingLatency);
     console.log("max outstanding latency:", maxOutstandingLatency);
-    console.log();
   }
 
-  console.log("start time:", new  Date())
   startClients();
   setTimeout(function() {
     stopClients();
     printResults();
-    console.log("end time:", new  Date())
     process.exit();
   }, TEST_DURATION);
 }
