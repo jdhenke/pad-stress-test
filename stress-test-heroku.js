@@ -1,5 +1,10 @@
 // simulates any number of concurrent users of our heroku site
 
+if (process.argv.length != 5) {
+  console.log("invalid number of arguments", process.argv);
+  process.exit();
+}
+
 var NUM_USERS = parseInt(process.argv[2]);
 var TEST_DURATION = 1000 * parseInt(process.argv[3]);
 if (! (NUM_USERS > 0) || !(TEST_DURATION > 0)) {
@@ -7,10 +12,6 @@ if (! (NUM_USERS > 0) || !(TEST_DURATION > 0)) {
   process.exit();
 }
 var docID = process.argv[4];
-if (typeof docID !== "string") {
-  console.log("invalid arguments", process.argv);
-  process.exit();
-}
 
 // pull in libraries
 var http = require("http");
