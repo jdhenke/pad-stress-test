@@ -45,19 +45,19 @@ function main() {
         numReceivedCommits += 1;
       });
     }
-    var meanLatency = totalLatency / numReceivedCommits;
+    var meanLatency = parseInt(totalLatency / numReceivedCommits);
     console.log("Sent commits:", numSentCommits);
     console.log("Received commits:", numReceivedCommits);
     console.log("Mean Latency:", meanLatency, "(ms)");
   }
 
+  console.log("Start Time:", new  Date())
   startClients();
   setTimeout(function() {
     stopClients();
-    setTimeout(function() {
-      printResults();
-      process.exit();
-    }, 0);
+    printResults();
+    console.log("End Time:", new  Date())
+    process.exit();
   }, TEST_DURATION);
 }
 
